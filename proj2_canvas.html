@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Project 2</title>
+
+<script src="AffineTransform2D.js"></script>
+<script src="mary_project2.js"></script>
+<script src="color_utils.js"></script>
+<script src="curve_utils.js"></script>
+
+<script>
+"use strict";
+
+// Source code for a simple vertex shader
+var vertexShaderSource = [
+     "attribute vec2 vertexCoords;",
+     "attribute vec4 vertexColor;",
+     "uniform mat3 viewportTransform;",
+     "uniform mat3 coordinateTransform;",
+     "varying vec4 color;",
+     "void main() {",
+     "   color = vertexColor;",
+     "   vec3 transCoords = viewportTransform * coordinateTransform * vec3(vertexCoords, 1.0);",
+     "   gl_Position = vec4(transCoords.xy, 0.0, 1.0);",
+     "}"
+].join("\n");
+
+// Source code for a simple fragment shader
+var fragmentShaderSource = [
+     "precision highp float;",
+     "varying vec4 color;",
+     "void main() {",
+     "   gl_FragColor =  color;",
+     "}"
+].join("\n");
+
+var gl;
+var prog;
+var buffers;
+
+/*---------------------- common WebGL routines ------------------------*/
+
+/**
+ * Applies viewport coordinate transformation to the webgl context by setting the value
+ * of the viewportTransform uniform in the shader program.  The canvas will display
+ * the region of the xy-plane with x ranging from xmin to xmax and y ranging from ymin
+ * to ymax.  If ignoreAspect is true, these ranges will fill the canvas.  If ignoreAspect
+ * is missing or is false, one of the x or y ranges will be expanded, if necessary,
+ * so that the aspect ratio is preserved.
+ */
+function setViewportTransform(xmin, xmax, ymin, ymax, ignoreAspect, gl) {
+    if ( ! ignoreAspect) {
+       var displayAspect = gl.canvas.height / gl.canvas.width;
+       var requestedAspect = Math.abs((ymax-ymin)/(xmax-xmin));
+       if (displayAspect > requestedAspect) {
+          var excess= (ymax-ymin) * (displayAspect/requestedAspect - 1);
+          ymin -= excess/2;
+          ymax += excess/2;
+       }
+       else if (displayAspect < requestedAspect) {
+          var excess = (xmax-xmin) * (requestedAspect/displayAspect - 1);
+          xmin -= excess/2;
+          xmax += excess/2;
+      }
+   }
+   return [
+              2/(xmax-xmin),                        0,     0,
+                          0,            2/(ymax-ymin),     0,
+    -1 - 2*xmin/(xmax-xmin),  -1 - 2*ymin/(ymax-ymin),     1
+          ];
+}
+
+/**
+ * Compiles and checks a shader of either type gl.VERTEX_SHADER or gl.FRAGMENT_SHADER
+ * If an error occurs while compiling or linking the program, an alert gives a message
+ * of the compilation or linking error.
+ */
+
+function loadShader(gl, type, sourceCode, strType) {
+    var shader = gl.createShader( type );
+    gl.shaderSource( shader, sourceCode );
+    gl.compileShader( shader );
+    if ( !gl.getShaderParameter(shader, gl.COMPILE_STATUS) &&
+         !gl.isContextLost() ) {
+        var infoLog = gl.getShaderInfoLog(shader);
+        alert("Error compiling shader:\n" + infoLog);
+        gl.deleteShader(shader);
+        return null;
+    }
+    console.log(strType + ' compiled\n\n');
+    return shader;
+}
+
+/**
+ * Creates a program for use in the WebGL context gl, and returns the
+ * identifier for that program.   If no error occurs,
+ * the program identifier is the return value of the function.
+ */
+function createShaderProgram(gl) {
+
+   var vsh = loadShader( gl, gl.VERTEX_SHADER, vertexShaderSource,
+                             "vertex shader" );
+   var fsh = loadShader( gl, gl.FRAGMENT_SHADER, fragmentShaderSource,
+                              "fragment shader" );
+
+   //create the program object
+   var prog = gl.createProgram();
+   gl.attachShader(prog,vsh);
+   gl.attachShader(prog, fsh);
+   //link the program
+   gl.linkProgram(prog);
+   //check link status
+   var linked = gl.getProgramParameter(prog, gl.LINK_STATUS);
+   if (!linked && !gl.isContextLost()) {
+      var infoLog = gl.getProgramInfoLog(prog);
+      alert("Error linking program:\n" + infoLog);
+      gl.deleteProgram(prog);
+      return;
+   }
+   return prog;
+}
+
+
+//Parameters hocks to communicate variables to shaders
+var vertexAttributeLocation, colorAttributeLocation, coordUniformLocation, viewUniformLocation;
+
+//To expand for more complex shaders
+function setShaderParams(gl, prog) {
+   // look up where the vertex data needs to go.
+   vertexAttributeLocation =  gl.getAttribLocation(prog, "vertexCoords");
+   // specify that a vertex array is used for vertex coords.
+   gl.enableVertexAttribArray(vertexAttributeLocation);
+
+   // look up uniforms
+   colorAttributeLocation =  gl.getAttribLocation(prog, "vertexColor");
+   gl.enableVertexAttribArray(colorAttributeLocation);
+
+   coordUniformLocation =  gl.getUniformLocation(prog, "coordinateTransform");
+   viewUniformLocation =  gl.getUniformLocation(prog, "viewportTransform");
+
+}
+
+
+/**
+ * Fetch the WebGL drawing context of the canvas element.
+ * Parameter can be either a string (the id of a canvas element), or
+ * the canvas element itself.
+ * If the context can't be created, an exception of type string is thrown.
+ * Otherwise, the WebGL context is returned.
+ */
+function initWebGL(canvas) {
+   var c;
+   if ( ! canvas )
+      throw "Canvas required";
+   if (typeof canvas == "string")
+      c = document.getElementById(canvas);
+   else
+      c = canvas;
+
+   if ( ! c.getContext )
+      throw "No legal canvas provided";
+
+   var gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+
+   if ( ! gl )
+      throw "Can't create WebGLContext";
+
+   // console.log("everything good");
+   return gl;
+}
+
+
+/**
+ * A convenience function, used during debugging, which checks whether a
+ * GL error has occured in the drawing context, gl.  The method returns null
+ * if no error has occurred, and retuns a string that describes the error if
+ * one has occurred.  (The string is a littl more useful than the native GL
+ * error code.)  Note that once an error occurs, GL retains that error until
+ * this function is called, so you can't assume that the error occurred on
+ * the error occurred in the line that precedes the call to this function.
+ */
+function checkWebGLError(gl) {
+   var e = gl.getError();
+   if ( e == gl.NO_ERROR )
+      return null;
+   else if ( e == gl.INVALID_ENUM )
+      return "Invalid constant";
+   else if ( e == gl.INVALID_VALUE )
+      return "Numeric argument out of range.";
+   else if ( e == gl.INVALID_OPERATION )
+      return "Invalid operation for current state.";
+   else if ( e == gl.OUT_OF_MEMORY )
+      return "Out of memory!!";
+   else
+      return "??? Unknown error ???";
+}
+
+function draw() {
+  var modeSelection = document.getElementById("modeselect").value;
+  if (modeSelection == "orig") { buffers = initScene(gl, true); }
+  if (modeSelection == "night") { buffers = initScene(gl, false); }
+
+  drawScene(gl, prog, buffers);
+}
+
+/**
+ * Initialize the WebGL graphics context, including creating and filling the
+ * VBOs that hold the coordinates for vertices of basic objects.
+ */
+function init() {
+
+   // Get A WebGL context
+   gl = initWebGL("glcanvas");
+   if (!gl) return;
+
+   // var buffers = initScene(gl);
+   //console.log(buffers[0]);
+
+   prog = createShaderProgram( gl );
+   setShaderParams(gl, prog);
+
+   document.getElementById("modeselect").onchange = draw;
+   draw();
+}
+
+
+
+</script>
+</head>
+<body onload="init()" style="background-color: lightGray">
+
+<h2 style = "font-family:serif,courier,georgia;font-style:italic;">
+         Intérieur au Violon, Henri Matisse
+      </h2>
+<p style = "font-family:serif,courier,georgia;font-style:italic;">
+         Computer rendering by Mary Festa </p>
+
+<noscript><p><b>Sorry, but this page requires JavaScript.</b></p></noscript>
+
+<p><b>Painting Mode:</b>
+    <select id="modeselect">
+       <option value="orig" selected="selected">Original</option>
+       <option value="night">Night Mode</option>
+    </select>
+</p>
+
+<canvas id="glcanvas" width="530" height="690"  style="background-color:transparent"></canvas>
+
+
+</body>
+</html>
