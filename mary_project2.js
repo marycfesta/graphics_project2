@@ -227,16 +227,6 @@ function smallCurve(gl, colors, obj, outlined){
 }
 
 function violinSquiggles(gl, obj){
-  // let control_polygon = [ 0,0, 0,0, -10,10, -20,0, -20,-10,
-  //                                   -10,-30, 10,-30, 20,-10,
-  //                                    25,0, 35,0, 40,-10,
-  //                                    37,-15, 33,-20, 30,-15,
-  //
-  //                                    32,-20, 38,-22, 40,-20,
-  //                                    45,-20, 50,-15, 50,-10,
-  //                                    40,10, 20,10, 10,-10,
-  //                                    5,-20, -5,-20, -10,-10,
-  //                                    -7,-5, -3,0, 0,0 ];
 
   let elements = [];
   // top
@@ -658,11 +648,6 @@ function openWindowBackground(gl, obj){
     obj.push(filledSquare(gl, PALETTE.tan, transform.scale(6,29)));
   popTransform();
 
-  // pushTransform();
-  //   transform.translate(155,345);
-  //   obj.push(filledSquare(gl, PALETTE.tan, transform.scale(8,29)));
-  // popTransform();
-
   pushTransform();
     obj.push(create2DGradientShape(gl,
               //geo
@@ -673,12 +658,6 @@ function openWindowBackground(gl, obj){
              false,    // isHSL
              transform.scale(1)));
   popTransform();
-
-  // blue rectangle
-  // pushTransform();
-  //   transform.translate(155,105);
-  //   obj.push(filledSquare(gl, PALETTE.white, transform.scale(6,17)));
-  // popTransform();
 
   pushTransform();
     transform.translate(155,105);
@@ -1166,11 +1145,6 @@ function violinMain(gl, obj, color, outline){
     obj.push(create2DShape(gl, gl.TRIANGLE_FAN, main_pts, color, transform.scale(1)));
   popTransform();
 
-  // if (outline){
-  //   pushTransform();
-  //     obj.push(create2DShape(gl, gl.LINE_LOOP, main_pts.slice(2), PALETTE.black, transform.scale(1)));
-  //   popTransform();
-  // }
 }
 
 function violinCaseOrig(gl, obj, color){
@@ -1192,13 +1166,6 @@ function violinCaseOrig(gl, obj, color){
     obj.push(create2DShape(gl, gl.TRIANGLE_FAN, neck_pts, color, transform.scale(1)));
     // obj.push(create2DShape(gl, gl.LINE_STRIP, neck_pts.slice(2), PALETTE.black, transform.scale(1)));
   popTransform();
-
-  // eliminate neck outline bleeding into case
-  // pushTransform();
-  //   transform.translate(1,0);
-  //   transform.scale(0.98);
-  //   violinMain(gl, obj, PALETTE.caseblue, false);
-  // popTransform();
 
 }
 
@@ -1364,8 +1331,6 @@ function makeScene(gl, day) {
    violinInCase(gl, obj);
    if (!day) { nightMode(gl, obj); }
 
-
-
    return obj;
 }
 
@@ -1399,6 +1364,3 @@ function drawScene(gl, prog, shapes) {
    // console.log("any webGL error", checkWebGLError(gl));
 
 }
-
-// TODO: add a moon in the rightWindow
-// TODO: line the little bezier curve in the bottom of the openWindow
