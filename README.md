@@ -1,6 +1,5 @@
 # Project 2
-## Computer Graphics Fall 2019
-#### Colgate University
+## Computer Graphics Fall 2019, Colgate University
 
 **Piece Name:** *Intérieur au Violon*
 
