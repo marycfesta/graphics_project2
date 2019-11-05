@@ -1,20 +1,14 @@
 # graphics_project2
 
-a `readme` that includes your art book reference, the piece name, artist, year of the painting and a few paragraphs on your work, (think git readme intro) , that contains description such as
-what are you most proud of and don't want anyone to miss out,
-what need rework for improvement or for extension if you add time and
-all the references/tutorials you used, including classmate code or ideas (you don't need to list what we study/use in lectures or labs); it is essential to give credit and acknowledge help you receive and docs you used
-the general description of your project and the competences you built and exercised.
+**Piece Name:** *Intérieur au Violon*
 
-[Piece Name:] *Intérieur au Violon*
+**Artist:** *Henri Matisse*
 
-[Artist:] *Henri Matisse*
+**Year:** *1918*
 
-[Year:] *1918*
+**Art Book Reference:** *reference*
 
-[Art Book Reference:] *reference*
-
-[Description:]
+**Description:**
 * General
   * I had a set of colors within a single palette which encompassed all the colors in my image.
   * I created a set of basic shapes which would be transformed into different areas of the picture to create the geometry of the full image. These included:
