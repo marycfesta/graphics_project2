@@ -1347,7 +1347,6 @@ function initScene(gl, day) {
 function drawScene(gl, prog, shapes) {
 
    gl.clear(gl.COLOR_BUFFER_BIT);
-   // gl.enable(gl.BLEND);
 
    //set shader to use
    gl.useProgram(prog);
