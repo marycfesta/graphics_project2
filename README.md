@@ -6,8 +6,6 @@
 
 **Year:** *1918*
 
-**Art Book Reference:** *reference*
-
 **Description:**
 * General
   * I had a set of colors within a single palette which encompassed all the colors in my image.
