@@ -1,10 +1,14 @@
-# graphics_project2
+# Project 2
+## Computer Graphics Fall 2019
+#### Colgate University
 
 **Piece Name:** *Intérieur au Violon*
 
 **Artist:** *Henri Matisse*
 
 **Year:** *1918*
+
+**Art Book Reference:** *Matisse on Art by Jack D. Flam*
 
 **Description:**
 * General
